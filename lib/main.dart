@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-//import 'package:flutter/giderler.dart';
+import 'package:hess_app/widgets/giderler.dart';
 
 void main() {
   runApp(
-    MaterialApp(
-      home: //ToDo: ana main buraya eklenecek..,
-     ),
+    const MaterialApp(
+      home: giderler(),
+    ),
   );
 }
