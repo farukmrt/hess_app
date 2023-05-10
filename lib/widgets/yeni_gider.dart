@@ -1,10 +1,12 @@
 //import 'dart:js_util';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:hess_app/models/gider.dart';
 
 class yeniGider extends StatefulWidget {
-  const yeniGider({super.key});
+  const yeniGider({super.key, required this.onGiderEkle});
+
+  final void Function(gider giderCek) onGiderEkle;
 
   @override
   State<yeniGider> createState() {
@@ -15,16 +17,57 @@ class yeniGider extends StatefulWidget {
 class _yeniGiderState extends State<yeniGider> {
   final _baslikKontrolcu = TextEditingController();
   final _fiyatKontrolcu = TextEditingController();
+  DateTime? _secilenTarih;
+  Kategori _secilenKategori = Kategori.yemek;
 
-  void _tarihSecici() {
+  void _tarihSecici() async {
     final now = DateTime.now();
     final firstDate = DateTime(now.year - 1, now.month, now.day);
+    final secilmisTarih = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: firstDate,
+      lastDate: now,
+    );
+    setState(() {
+      _secilenTarih = secilmisTarih;
+    });
+  }
 
-    showDatePicker(
+  void _giderVerisiniGonder() {
+    final girilenTutar = double.tryParse(_fiyatKontrolcu
+        .text); //tryParse eger girilen sayi gecersizse null dondurur
+    final tutarGecerliMi = girilenTutar == null || girilenTutar <= 0;
+    if (_baslikKontrolcu.text.trim().isEmpty ||
+        tutarGecerliMi ||
+        _secilenTarih == null) {
+      showDialog(
         context: context,
-        initialDate: now,
-        firstDate: firstDate,
-        lastDate: now);
+        builder: (ctx) => AlertDialog(
+          title: const Text('Uyari!!'),
+          content: const Text('Lutfen girilen degerle dikkat edin'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+              },
+              child: const Text('tamam'),
+            ),
+          ],
+        ),
+      );
+      //hata mesajı girilir..
+      return;
+    }
+
+    widget.onGiderEkle(
+      gider(
+          baslik: _baslikKontrolcu.text,
+          tutar: girilenTutar,
+          tarih: _secilenTarih!,
+          kategori: _secilenKategori),
+    );
+    Navigator.pop(context); //acilan pencerenin kapatilmasi icin
   }
 
   @override //kontrolcu kullildiktan sonra icinin temizlenmesi icin dispose kullanimi sarttir.
@@ -46,7 +89,7 @@ class _yeniGiderState extends State<yeniGider> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(17),
+      padding: const EdgeInsets.fromLTRB(17, 48, 17, 17),
       child: Column(
         children: [
           TextField(
@@ -78,7 +121,11 @@ class _yeniGiderState extends State<yeniGider> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Text('Tarih Sec'),
+                    Text(
+                      _secilenTarih == null
+                          ? 'tarih secin'
+                          : duzenleyici.format(_secilenTarih!),
+                    ),
                     IconButton(
                       onPressed: _tarihSecici,
                       icon: const Icon(
@@ -90,24 +137,42 @@ class _yeniGiderState extends State<yeniGider> {
               ),
             ],
           ),
+          const SizedBox(height: 18),
           Row(
             children: [
+              DropdownButton(
+                value: _secilenKategori,
+                items: Kategori.values
+                    .map(
+                      (kategori) => DropdownMenuItem(
+                        value: kategori,
+                        child: Text(
+                          kategori.name.toUpperCase(),
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value == null) {
+                    return; //setState buraya yazilmadi cünkü return her zaman calisacak son koddur eger buraya yazılırsa program kitlenir
+                  }
+                  setState(
+                    () {
+                      _secilenKategori = value;
+                    },
+                  );
+                },
+              ),
+              const Spacer(),
               TextButton(
                 onPressed: () {
                   Navigator.pop(
-                      context); //wigdetimizin ana build'indaki contexet kismina aktararak ilk kisma doner
+                      context); //wigdetimizin ana build'indaki context kismina aktararak ilk kisma doner
                 },
-                child: const Text(
-                  'Geri',
-                ),
+                child: const Text('Geri'),
               ),
               ElevatedButton(
-                onPressed: () {
-                  print(_baslikKontrolcu.text);
-                  print(_fiyatKontrolcu.text);
-                  //kod_blogu:101
-                  //print(_girilenBaslik);
-                },
+                onPressed: _giderVerisiniGonder,
                 child: const Text('Yeni Degeri Kaydet'),
               ),
             ],

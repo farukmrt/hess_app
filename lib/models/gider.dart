@@ -6,13 +6,13 @@ final duzenleyici = DateFormat.yMd();
 
 const uuid = Uuid();
 
-enum Kategori { yemek, seyehat, eglence, iss }
+enum Kategori { yemek, seyehat, eglence, calisma }
 
 const kategoriIcons = {
   Kategori.yemek: Icons.launch,
   Kategori.seyehat: Icons.flight_takeoff,
   Kategori.eglence: Icons.movie,
-  Kategori.iss: Icons.work,
+  Kategori.calisma: Icons.work,
 };
 
 class gider {

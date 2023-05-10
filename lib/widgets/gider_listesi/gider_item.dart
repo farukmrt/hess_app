@@ -16,8 +16,12 @@ class giderItem extends StatelessWidget {
           vertical: 13,
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(giderCek.baslik),
+            Text(
+              giderCek.baslik,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 4),
             Row(
               children: [
